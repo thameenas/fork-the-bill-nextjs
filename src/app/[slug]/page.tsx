@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'website',
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Expense Not Found - Fork the Bill',
       description: 'The requested expense could not be found.',

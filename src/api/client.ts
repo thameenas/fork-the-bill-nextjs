@@ -24,7 +24,7 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error: AxiosError) => {
-        const responseData = error.response?.data as any;
+        const responseData = error.response?.data as { message?: string } | undefined;
         const apiError: ApiError = {
             timestamp: new Date().toISOString(),
             status: error.response?.status || 500,
@@ -282,7 +282,7 @@ export const updateExpenseItems = async (slug: string, items: Item[]): Promise<E
 
         // Convert items to request format
         const itemRequests = items.map(item => {
-            const itemRequest: any = {
+            const itemRequest: { name: string; price: number; quantity: number; totalQuantity: number; id?: string } = {
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,

@@ -174,7 +174,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
         const updatedExpense = await claimItem(expense.slug, itemId, person.id);
         setExpense(updatedExpense);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to toggle claim item:', error);
     } finally {
       setIsClaiming(null);
@@ -534,7 +534,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
       {/* Completion Status - All Users */}
       {!isEditMode && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h3 className="text-lg font-semibold text-green-800 mb-3">Everyone's Status</h3>
+          <h3 className="text-lg font-semibold text-green-800 mb-3">Everyone&apos;s Status</h3>
           <div className="space-y-3">
             {allPeople.map((personName) => {
               const isFinished = getPersonCompletionStatus(personName);
@@ -576,7 +576,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
                             : 'bg-green-500 text-white hover:bg-green-600'
                         }`}
                       >
-                        {isFinished ? 'Mark as Pending' : 'Mark as Finished'}
+                        {isFinished ? 'Mark as Pending' : 'Mark as Done'}
                       </button>
                     )}
                   </div>
@@ -586,7 +586,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
           </div>
           <div className="mt-3 pt-3 border-t border-green-200">
             <p className="text-sm text-green-700">
-              {finishedPeople.length} of {allPeople.length} people have marked themselves as finished
+              {finishedPeople.length} of {allPeople.length} people have marked themselves as done
             </p>
           </div>
         </div>

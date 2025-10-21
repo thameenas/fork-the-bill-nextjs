@@ -15,7 +15,7 @@ export const usePersonName = (): [string, (name: string) => void] => {
         if (savedName) {
           setPersonNameState(savedName);
         }
-      } catch (error) {
+      } catch {
         // Silently handle localStorage errors
       }
     }
@@ -32,7 +32,7 @@ export const usePersonName = (): [string, (name: string) => void] => {
         } else {
           localStorage.removeItem(PERSON_NAME_KEY);
         }
-      } catch (error) {
+      } catch {
         // Silently handle localStorage errors
       }
     }

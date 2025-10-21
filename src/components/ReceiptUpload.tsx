@@ -22,9 +22,9 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
     try {
       const newExpense = await createExpenseFromImage(file, payerName.trim());
       onExpenseCreated(newExpense.slug || newExpense.id);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to create expense:', error);
-      setError(error.message || 'Failed to process receipt. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to process receipt. Please try again.');
     } finally {
       setIsUploading(false);
       event.target.value = '';
