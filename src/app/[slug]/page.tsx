@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: `Split bill for ${expense.restaurantName} paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
       openGraph: {
         title: `${expense.restaurantName} - Fork the Bill`,
-        description: `Split bill for ${expense.restaurantName} paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
+        description: `Paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
         type: 'website',
         images: [],
       },
