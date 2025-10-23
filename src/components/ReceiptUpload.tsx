@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { createExpenseFromImage } from '../api/client';
-import { compressImage, validateImageFile, formatFileSize } from '../utils/imageCompression';
+import { compressImage, validateImageFile } from '../utils/imageCompression';
 
 interface ReceiptUploadProps {
   onExpenseCreated: (slug: string) => void;
@@ -12,7 +12,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [payerName, setPayerName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [compressionStatus, setCompressionStatus] = useState<string | null>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -20,7 +19,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
 
     setIsUploading(true);
     setError(null);
-    setCompressionStatus(null);
     
     try {
       // Validate the image file
@@ -30,10 +28,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
         return;
       }
 
-      // Show original file size and start compression
-      const originalSize = formatFileSize(file.size);
-      setCompressionStatus(`Original size: ${originalSize}. Compressing...`);
-
       // Compress the image to reduce file size
       const compressedFile = await compressImage(file, {
         maxWidth: 1920,
@@ -41,11 +35,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
         quality: 0.8,
         maxSizeKB: 2048, // 2MB max
       });
-
-      const compressedSize = formatFileSize(compressedFile.size);
-      const compressionRatio = ((file.size - compressedFile.size) / file.size * 100).toFixed(1);
-      
-      setCompressionStatus(`Compressed: ${originalSize} → ${compressedSize} (${compressionRatio}% reduction)`);
 
       // Upload the compressed image
       const newExpense = await createExpenseFromImage(compressedFile, payerName.trim());
@@ -65,8 +54,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
     } finally {
       setIsUploading(false);
       event.target.value = '';
-      // Clear compression status after a delay
-      setTimeout(() => setCompressionStatus(null), 3000);
     }
   };
 
@@ -136,12 +123,6 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
 
         {!payerName.trim() && (
           <p className="text-sm text-red-600 text-center">Please enter your name first</p>
-        )}
-
-        {compressionStatus && (
-          <div className="text-center">
-            <p className="text-sm text-blue-600">{compressionStatus}</p>
-          </div>
         )}
 
         {error && (
