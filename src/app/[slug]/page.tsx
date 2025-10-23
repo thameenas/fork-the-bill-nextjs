@@ -13,10 +13,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const expense = await getExpense(slug);
     return {
-      title: `${expense.restaurantName} - Fork the Bill`,
+      title: `Fork the Bill - ${expense.restaurantName}`,
       description: `Split bill for ${expense.restaurantName} paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
       openGraph: {
-        title: `${expense.restaurantName} - Fork the Bill`,
+        title: `Fork the Bill - ${expense.restaurantName}`,
         description: `Paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
         type: 'website',
         images: [],
