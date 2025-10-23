@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { createExpenseFromImage } from '../api/client';
+import { compressImage, validateImageFile, formatFileSize } from '../utils/imageCompression';
 
 interface ReceiptUploadProps {
   onExpenseCreated: (slug: string) => void;
@@ -11,6 +12,7 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [payerName, setPayerName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [compressionStatus, setCompressionStatus] = useState<string | null>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -18,16 +20,53 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
 
     setIsUploading(true);
     setError(null);
+    setCompressionStatus(null);
     
     try {
-      const newExpense = await createExpenseFromImage(file, payerName.trim());
+      // Validate the image file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'Invalid file');
+        return;
+      }
+
+      // Show original file size and start compression
+      const originalSize = formatFileSize(file.size);
+      setCompressionStatus(`Original size: ${originalSize}. Compressing...`);
+
+      // Compress the image to reduce file size
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.8,
+        maxSizeKB: 2048, // 2MB max
+      });
+
+      const compressedSize = formatFileSize(compressedFile.size);
+      const compressionRatio = ((file.size - compressedFile.size) / file.size * 100).toFixed(1);
+      
+      setCompressionStatus(`Compressed: ${originalSize} → ${compressedSize} (${compressionRatio}% reduction)`);
+
+      // Upload the compressed image
+      const newExpense = await createExpenseFromImage(compressedFile, payerName.trim());
       onExpenseCreated(newExpense.slug || newExpense.id);
     } catch (error) {
       console.error('Failed to create expense:', error);
-      setError(error instanceof Error ? error.message : 'Failed to process receipt. Please try again.');
+      if (error instanceof Error) {
+        // Check if it's still a 413 error
+        if (error.message.includes('413') || error.message.toLowerCase().includes('too large')) {
+          setError('Image is still too large after compression. Please try a smaller image or take a new photo with lower resolution.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Failed to process receipt. Please try again.');
+      }
     } finally {
       setIsUploading(false);
       event.target.value = '';
+      // Clear compression status after a delay
+      setTimeout(() => setCompressionStatus(null), 3000);
     }
   };
 
@@ -86,7 +125,7 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
                       <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <p className="text-sm font-medium">Click to upload receipt image</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, JPEG up to 10MB</p>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, JPEG (auto-compressed for upload)</p>
                     <p className="text-xs text-gray-400 mt-2">Or drag and drop here</p>
                   </>
                 )}
@@ -97,6 +136,12 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
 
         {!payerName.trim() && (
           <p className="text-sm text-red-600 text-center">Please enter your name first</p>
+        )}
+
+        {compressionStatus && (
+          <div className="text-center">
+            <p className="text-sm text-blue-600">{compressionStatus}</p>
+          </div>
         )}
 
         {error && (
