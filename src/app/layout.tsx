@@ -27,6 +27,9 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
+        <meta property="og:image" content="" />
+        <meta property="og:image:url" content="" />
+        <meta property="og:image:secure_url" content="" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
         <link rel="manifest" href="/manifest.json" />
