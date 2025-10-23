@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "Fork the Bill - Split Bills Easily",
     description: "Easily split restaurant bills with friends!",
+    images: [],
   },
   icons: {
     icon: "/favicon.ico",
@@ -28,7 +29,6 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/logo192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="antialiased">

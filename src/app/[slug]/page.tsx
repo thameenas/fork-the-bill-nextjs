@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: `${expense.restaurantName} - Fork the Bill`,
         description: `Split bill for ${expense.restaurantName} paid by ${expense.payerName}. Total: ₹${expense.totalAmount.toFixed(2)}`,
         type: 'website',
+        images: [],
       },
     };
   } catch {
