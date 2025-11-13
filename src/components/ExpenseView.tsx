@@ -168,8 +168,8 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
     setIsClaiming(itemId);
     
     try {
-      let currentExpense = expense;
-      let person = currentExpense?.people?.find(p => p.name === selectedPerson);
+      const currentExpense = expense;
+      const person = currentExpense?.people?.find(p => p.name === selectedPerson);
 
       // Check if item is already claimed by the current user
       const item = currentExpense.items.find(i => i.id === itemId);
