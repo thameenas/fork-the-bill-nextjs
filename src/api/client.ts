@@ -161,7 +161,9 @@ export const createExpenseFromImage = async (file: File, payerName: string): Pro
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            timeout: 30000,
+            timeout: 60000, // Increased timeout for larger files
+            maxContentLength: 10 * 1024 * 1024, // 10MB limit
+            maxBodyLength: 10 * 1024 * 1024, // 10MB limit
         }
     );
 

@@ -29,11 +29,13 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ onExpenseCreated }) => {
       }
 
       // Compress the image to reduce file size
+      // Use more aggressive compression for larger files
+      const targetSizeKB = file.size > 3 * 1024 * 1024 ? 1024 : 2048; // 1MB for files > 3MB, 2MB otherwise
       const compressedFile = await compressImage(file, {
-        maxWidth: 1920,
-        maxHeight: 1920,
-        quality: 0.8,
-        maxSizeKB: 2048, // 2MB max
+        maxWidth: file.size > 5 * 1024 * 1024 ? 1280 : 1920, // Smaller dimensions for very large files
+        maxHeight: file.size > 5 * 1024 * 1024 ? 1280 : 1920,
+        quality: file.size > 3 * 1024 * 1024 ? 0.6 : 0.8, // Lower quality for larger files
+        maxSizeKB: targetSizeKB,
       });
 
       // Upload the compressed image
