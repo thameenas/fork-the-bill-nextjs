@@ -42,6 +42,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
   const [isEditingDiscount, setIsEditingDiscount] = useState(false);
   const [expandedPersons, setExpandedPersons] = useState<Set<string>>(new Set());
   const [linkCopied, setLinkCopied] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   const togglePersonExpansion = (personName: string) => {
     setExpandedPersons(prev => {
@@ -137,6 +138,30 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
     return person.isFinished === undefined ? false : person.isFinished;
   };
 
+  const isPersonInExpense = (personName: string) => {
+    return expense?.people?.some(p => p.name === personName) || false;
+  };
+
+  const handleJoinExpense = async () => {
+    if (!selectedPerson.trim() || !expense?.slug) return;
+    
+    // Check if person is already in the expense
+    if (isPersonInExpense(selectedPerson)) {
+      return; // Already joined
+    }
+    
+    setIsJoining(true);
+    
+    try {
+      const updatedExpense = await addPersonToExpense(expense.slug, selectedPerson);
+      setExpense(updatedExpense);
+    } catch (error) {
+      console.error('Failed to join expense:', error);
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   const handleToggleClaimItem = async (itemId: string) => {
     if (!selectedPerson.trim() || !expense?.slug) return;
     
@@ -160,15 +185,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
       } else {
         // Claim the item
         if (!person?.id) {
-          console.log(`Adding new person "${selectedPerson}" to expense before claiming`);
-          currentExpense = await addPersonToExpense(expense.slug, selectedPerson);
-          person = currentExpense.people.find(p => p.name === selectedPerson);
-
-          if (!person?.id) {
-            throw new Error(`Failed to add person "${selectedPerson}" to expense`);
-          }
-
-          setExpense(currentExpense);
+          throw new Error(`You must join the expense first before claiming items. Click the "Join" button next to your name.`);
         }
 
         const updatedExpense = await claimItem(expense.slug, itemId, person.id);
@@ -658,14 +675,33 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
         <label htmlFor="personName" className="block text-sm font-medium text-gray-700 mb-2">
           Your name
         </label>
-        <input
-          type="text"
-          id="personName"
-          value={selectedPerson}
-          onChange={(e) => setSelectedPerson(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter your name to claim items"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            id="personName"
+            value={selectedPerson}
+            onChange={(e) => setSelectedPerson(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter your name"
+          />
+          {selectedPerson.trim() && !isPersonInExpense(selectedPerson) && (
+            <button
+              onClick={handleJoinExpense}
+              disabled={isJoining}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {isJoining ? 'Joining...' : 'Join'}
+            </button>
+          )}
+        </div>
+        {selectedPerson.trim() && isPersonInExpense(selectedPerson) && (
+          <p className="text-sm text-green-600 mt-2 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            You&apos;ve joined this expense
+          </p>
+        )}
       </div>
 
       {/* Items List - Mobile optimized */}
@@ -725,20 +761,25 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
               {!isEditMode && selectedPerson.trim() && (
                 <button
                   onClick={() => handleToggleClaimItem(item.id)}
-                  disabled={isClaiming === item.id}
+                  disabled={isClaiming === item.id || !isPersonInExpense(selectedPerson)}
                   className={`px-3 py-1 rounded-md text-sm min-w-[80px] ${
                     isClaiming === item.id
                       ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : !isPersonInExpense(selectedPerson)
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : item.claimedBy.includes(selectedPerson)
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
+                  title={!isPersonInExpense(selectedPerson) ? 'Join the expense first to claim items' : ''}
                 >
                   {isClaiming === item.id ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
                       {item.claimedBy.includes(selectedPerson) ? 'Unclaiming...' : 'Claiming...'}
                     </div>
+                  ) : !isPersonInExpense(selectedPerson) ? (
+                    'Join first'
                   ) : item.claimedBy.includes(selectedPerson) ? (
                     'Unclaim'
                   ) : (
