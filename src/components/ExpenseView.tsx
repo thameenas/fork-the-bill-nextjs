@@ -128,7 +128,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
   };
 
   const getPersonCompletionStatus = (personName: string) => {
-    const person = expense?.people?.find(p => p.name === personName);
+    const person = expense?.people?.find(p => p.name === personName.trim());
 
     // If person doesn't exist, return false (not finished)
     if (!person) {
@@ -139,7 +139,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
   };
 
   const isPersonInExpense = (personName: string) => {
-    return expense?.people?.some(p => p.name === personName) || false;
+    return expense?.people?.some(p => p.name === personName.trim()) || false;
   };
 
   const handleJoinExpense = async () => {
@@ -153,7 +153,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
     setIsJoining(true);
     
     try {
-      const updatedExpense = await addPersonToExpense(expense.slug, selectedPerson);
+      const updatedExpense = await addPersonToExpense(expense.slug, selectedPerson.trim());
       setExpense(updatedExpense);
     } catch (error) {
       console.error('Failed to join expense:', error);
@@ -169,16 +169,17 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
     
     try {
       const currentExpense = expense;
-      const person = currentExpense?.people?.find(p => p.name === selectedPerson);
+      const trimmedPersonName = selectedPerson.trim();
+      const person = currentExpense?.people?.find(p => p.name === trimmedPersonName);
 
       // Check if item is already claimed by the current user
       const item = currentExpense.items.find(i => i.id === itemId);
-      const isAlreadyClaimed = item?.claimedBy.includes(selectedPerson);
+      const isAlreadyClaimed = item?.claimedBy.includes(trimmedPersonName);
 
       if (isAlreadyClaimed) {
         // Unclaim the item
         if (!person?.id) {
-          throw new Error(`Cannot unclaim: Person "${selectedPerson}" not found in expense`);
+          throw new Error(`Cannot unclaim: Person "${trimmedPersonName}" not found in expense`);
         }
         const updatedExpense = await unclaimItem(expense.slug, itemId, person.id);
         setExpense(updatedExpense);
@@ -555,7 +556,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
           <div className="space-y-3">
             {allPeople.map((personName) => {
               const isFinished = getPersonCompletionStatus(personName);
-              const isCurrentUser = personName === selectedPerson;
+              const isCurrentUser = personName === selectedPerson.trim();
               
               return (
                 <div key={personName} className="flex items-center justify-between">
@@ -767,20 +768,20 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ slug }) => {
                       ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                       : !isPersonInExpense(selectedPerson)
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                      : item.claimedBy.includes(selectedPerson)
+                      : item.claimedBy.includes(selectedPerson.trim())
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                   }`}
                   title={!isPersonInExpense(selectedPerson) ? 'Join the expense first to claim items' : ''}
                 >
                   {isClaiming === item.id ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                      {item.claimedBy.includes(selectedPerson) ? 'Unclaiming...' : 'Claiming...'}
+                      {item.claimedBy.includes(selectedPerson.trim()) ? 'Unclaiming...' : 'Claiming...'}
                     </div>
                   ) : !isPersonInExpense(selectedPerson) ? (
                     'Join first'
-                  ) : item.claimedBy.includes(selectedPerson) ? (
+                  ) : item.claimedBy.includes(selectedPerson.trim()) ? (
                     'Unclaim'
                   ) : (
                     'Claim'
